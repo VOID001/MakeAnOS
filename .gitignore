@@ -2,3 +2,9 @@
 *.lst
 *.bin
 *.sys
+*.obj
+*.map
+*.gas
+*.bim
+*.hrb
+bootpack.nas
