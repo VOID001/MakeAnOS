@@ -77,7 +77,7 @@ next:
 fin:
 	HLT
 
-	JMP		fin
+	JMP		0xc200
 ;输出错误信息并且进入fin循环
 err:
 	MOV		SI,msg
