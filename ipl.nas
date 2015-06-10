@@ -32,24 +32,36 @@ entry:
 	MOV		SS,AX
 	MOV		SP,0x7c00
 	MOV		DS,AX
-	MOV		ES,AX
+;下面的代码是用来将我们盘内的内容读入内存,读入一个扇区
+	MOV		AX,0x0820
+	MOV		ES,AX			;设置在内存的存储位置为0x0820
+	MOV		CH,0
+	MOV		DH,0
+	MOV		CL,2
+	
+	MOV		AH,0x02
+	MOV		AL,1
+	MOV		BX,0
+	MOV		DL,0x00
+	INT		0x13			;调用磁盘BIOS
+	JC		err				;如果CF标志为1说明出错,跳转到err执行相应代码
+fin:
+	HLT
+
+	JMP		fin
+;输出错误信息并且进入fin循环
+err:
 	MOV		SI,msg
 putloop:
 	MOV		AL,[SI]
 	ADD		SI,1
 	CMP		AL,0
 	JE		fin
-	MOV		AH,0x0e				;Use Display BIOS ,First set the variables
+	MOV		AH,0x0e
 	MOV		BX,15
 	INT		0x10
 	JMP		putloop
-
-fin:
-	HLT
-
-	JMP		fin
-
-
+	
 ;Show Message
 msg:
 DB		0x0a,0x0a
