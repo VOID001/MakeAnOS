@@ -15,10 +15,15 @@ default:
 #文件生成规则
 ipl.bin: ipl.nas Makefile
 	$(NASK) ipl.nas ipl.bin ipl.lst
-
-voidOS.img: ipl.bin Makefile
+#edimg 在冒号后要紧跟文件名,不能在冒号之后加任何空白字符
+voidOS.img: ipl.bin voidOS.sys Makefile
 	$(EDIMG) imgin:../tools/fdimg0at.tek \
-		wbinimg src:ipl.bin len:512 from:0 to:0 imgout:voidOS.img
+		wbinimg src:ipl.bin len:512 from:0 to:0 \
+		copy from:voidOS.sys to:@: \
+		imgout:voidOS.img
+
+voidOS.sys: voidOS.nas Makefile
+	$(NASK) voidOS.nas voidOS.sys voidOS.lst
 
 #指令
 asm:
@@ -34,7 +39,9 @@ clean:
 	
 	-$(DEL) ipl.bin
 	-$(DEL) ipl.lst
+	-$(DEL) voidOS.sys
+	-$(DEL)	voidOS.lst
 
 src_only:
 	$(MAKE) clean
-	-$(DEL) helloos.img
+	-$(DEL) voidOS.img
