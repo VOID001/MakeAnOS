@@ -1,5 +1,6 @@
 #定义变量
 TOOLPATH = ../tools/
+INCPATH = ../tools/voidOS/
 MAKE = make -r
 NASK = $(TOOLPATH)nask 
 EDIMG = $(TOOLPATH)edimg

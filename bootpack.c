@@ -37,6 +37,7 @@ void putfonts8_asc(char* vram, int xsize, int x, int y, char c, unsigned char *s
 #define COL8_840084 13
 #define COL8_008484 14
 #define COL8_848484 15
+#include <stdio.h>
 
 extern char hankaku[4096];
 
@@ -49,13 +50,16 @@ struct BOOTINFO {
 void HariMain(void)
 {
 	char* vram;		// BYTE PTR
+	unsigned char* str;
 	struct BOOTINFO* binfo;		//Store the bootup information in it
 
 	init_palette();	/* setup the palette */
 	binfo = (struct BOOTINFO*) 0xff0;
+	sprintf(str, "binfo -> vram = %08X\n",binfo -> vram);
 	
 	init_screen(binfo -> vram, binfo -> scrnx, binfo -> scrny);
-	putfonts8_asc(binfo -> vram, binfo -> scrnx, 8, 8, COL8_FFFFFF, "Hello World!\nvoidOS By VOID001");
+	putfonts8_asc(binfo -> vram, binfo -> scrnx, 8, 8, COL8_FFFFFF, "voidOS By VOID001");
+	putfonts8_asc(binfo -> vram, binfo -> scrnx, 8, 30, COL8_FFFFFF, str);
 	
 	for(;;)
 	{
