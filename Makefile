@@ -11,6 +11,8 @@ BIM2HRB = $(TOOLPATH)bim2hrb
 RULEFILE =$(TOOLPATH)voidOS/voidOS.rul
 COPY = cp
 DEL = rm
+MAKEFONT = $(TOOLPATH)makefont
+BIN2OBJ = $(TOOLPATH)bin2obj
 
 #自制的Makefile 参考原光盘内的Makefile
 
@@ -40,9 +42,15 @@ bootpack.obj: bootpack.nas Makefile
 naskfunc.obj: naskfunc.nas Makefile
 	$(NASK) naskfunc.nas naskfunc.obj naskfunc.lst
 
-bootpack.bim:bootpack.obj naskfunc.obj Makefile
+bootpack.bim:bootpack.obj naskfunc.obj hankaku.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
-		bootpack.obj naskfunc.obj
+		bootpack.obj naskfunc.obj hankaku.obj
+
+hankaku.bin: hankaku.txt Makefile
+	$(MAKEFONT) hankaku.txt hankaku.bin
+
+hankaku.obj: hankaku.bin Makefile
+	$(BIN2OBJ) hankaku.bin hankaku.obj _hankaku
 
 #3MB+64KB=3136KB
 
