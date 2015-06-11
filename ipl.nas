@@ -72,11 +72,9 @@ next:
 	ADD		CH,1
 	CMP		CH,CYLS
 	JB		readloop
-	JE		success
+	;JE		success
 
-fin:
-	HLT
-
+	MOV		[0xff0],CH				;这里需要更改使得voidOS.sys能被执行
 	JMP		0xc200
 ;输出错误信息并且进入fin循环
 err:
@@ -85,7 +83,7 @@ putloop:
 	MOV		AL,[SI]
 	ADD		SI,1
 	CMP		AL,0
-	JE		fin
+;	JE		fin
 	MOV		AH,0x0e
 	MOV		BX,15
 	INT		0x10

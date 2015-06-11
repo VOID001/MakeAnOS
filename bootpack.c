@@ -7,11 +7,18 @@
  ************************************************************************/
 
 void io_hlt(void);
+void write_mem8(int addr, int data);
 
-void voidMain(void)
+void HariMain(void)
 {
-fin:
-	io_hlt();
-	goto fin;
+	int i;
+	for(i = 0x0a0000; i <= 0x0affff; i++)
+	{
+		write_mem8(i, i%16);
+	}
+	for(;;)
+	{
+		io_hlt();
+	}
 }
 
