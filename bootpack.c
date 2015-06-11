@@ -35,16 +35,23 @@ void boxfill8(unsigned char* vram, int xszie, unsigned char c, int x0, int y0, i
 #define COL8_008484 14
 #define COL8_848484 15
 
+struct BOOTINFO {
+	char cyls,leds,vmode,reserve;
+	short scrnx,scrny;
+	char* vram;
+};
+
 void HariMain(void)
 {
 	int xsize,ysize;
 	char* vram;		// BYTE PTR
+	struct BOOTINFO* binfo;		//Store the bootup information in it
 
 	init_palette();	/* setup the palette */
-
-	vram = (char*)0xa0000;
-	xsize = 320;
-	ysize = 200;
+	binfo = (struct BOOTINFO*) 0xff0;
+	vram = binfo -> vram;
+	xsize = binfo -> scrnx;
+	ysize = binfo -> scrny;
 
 	boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 20);
 	boxfill8(vram, xsize, COL8_C6C6C6, 0, ysize - 19,	xsize - 1, ysize - 19);
