@@ -18,6 +18,9 @@ void boxfill8(unsigned char* vram, int xszie, unsigned char c, int x0, int y0, i
 void putfont8(char* vram, int xsize, int x, int y, char c, char* font);
 void init_screen(char* vram, int xsize, int ysize);
 void putfonts8_asc(char* vram, int xsize, int x, int y, char c, unsigned char *str);
+void init_mouse_cursor(char* mouse, char bc);
+void putblock8_8(char* vram, int vxsize, int pxsize, int pysize,
+		int px0, int py0, char* buf, int bxsize);
 
 /* 定义颜色 */
 
@@ -51,13 +54,19 @@ void HariMain(void)
 {
 	char* vram;		// BYTE PTR
 	unsigned char* str;
+	char* mouse_cursor;
 	struct BOOTINFO* binfo;		//Store the bootup information in it
+	int mousex, mousey;
 
 	init_palette();	/* setup the palette */
 	binfo = (struct BOOTINFO*) 0xff0;
 	sprintf(str, "binfo -> vram = %08X\n",binfo -> vram);
+	mousex = binfo -> scrnx / 2;
+	mousey = binfo -> scrny / 2;
 	
 	init_screen(binfo -> vram, binfo -> scrnx, binfo -> scrny);
+	init_mouse_cursor(mouse_cursor, COL8_008484);
+	putblock8_8(binfo -> vram,binfo -> scrnx, 16, 16, mousex, mousey, mouse_cursor, 16);
 	putfonts8_asc(binfo -> vram, binfo -> scrnx, 8, 8, COL8_FFFFFF, "voidOS By VOID001");
 	putfonts8_asc(binfo -> vram, binfo -> scrnx, 8, 30, COL8_FFFFFF, str);
 	
@@ -187,6 +196,56 @@ void init_screen(char* vram, int xsize, int ysize)
 	boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize -  4);
 	boxfill8(vram, xsize, COL8_FFFFFF, xsize - 47, ysize -  3, xsize -  4, ysize -  3);
 	boxfill8(vram, xsize, COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
+
+	return ;
+}
+
+void init_mouse_cursor(char* mouse, char bc)		//将显示鼠标箭头的信息装载到内存中
+{
+	static char cursor[16][16] = {		//绘制鼠标箭头
+		"**************..",
+		"*ooooooooooo*...",
+		"*oooooooooo*....",
+		"*ooooooooo*.....",
+		"*oooooooo*......",
+		"*ooooooo*.......",
+		"*ooooooo*.......",
+		"*oooooooo*......",
+		"*oooo**ooo*.....",
+		"*ooo*..*ooo*....",
+		"*oo*....*ooo*...",
+		"*o*......*ooo*..",
+		"**........*ooo*.",
+		"*..........*ooo*",
+		"............*oo*",
+		".............***",
+	};
+
+	int x, y;
+	for(y = 0; y < 16; y ++)
+	{
+		for(x = 0; x < 16; x++)
+		{
+			if(cursor[y][x] == '*') mouse[y * 16 + x] = COL8_000000;
+			else if(cursor[y][x] == 'o') mouse[y * 16 + x] = COL8_FFFFFF;
+			else if(cursor[y][x] == '.') mouse[y * 16 + x] = bc; 
+		}
+	}
+	
+	return ;
+}
+
+void putblock8_8(char* vram, int vxsize, int pxsize, int pysize,
+		int px0, int py0, char* buf, int bxsize)		//把buf的内容输出到屏幕上
+{
+	int x, y;
+	for(y = 0; y < pysize; y++)
+	{
+		for(x = 0; x < pxsize; x++)
+		{
+			vram[(py0 + y) * vxsize + (px0 + x)] = buf [y * bxsize + x];
+		}
+	}
 
 	return ;
 }
