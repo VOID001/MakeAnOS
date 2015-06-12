@@ -19,17 +19,21 @@ void init_gdtidt(void)
 	{
 		set_segmdesc(gdt + i, 0, 0, 0);
 	}
-	set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x4092);
-	set_segmdesc(gdt + 2, 0x0007ffff, 0x00280000, 0x409a);
-	load_gdtr(0xffff, 0x00270000);
+	set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
+	set_segmdesc(gdt + 2, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
+	load_gdtr(LIMIT_GDT, ADR_GDT);
 
 	/* Init IDT */
 	for(i = 0; i < 256; i++)
 	{
 		set_gatedesc(idt + i, 0, 0, 0);
 	}
-	load_idtr(0x7ff, 0x0026f800);
+	load_idtr(LIMIT_IDT, ADR_IDT);
 	
+	/* 将中断函数注册到 IDT 内 */
+	set_segmdesc(idt + 0x21, (int)asm_inthandler21, 2 << 3, AR_INTGATE32);	//刚开始因为把 idt 写成了gdt 一处理终端就报错
+	set_segmdesc(idt + 0x27, (int)asm_inthandler27, 2 << 3, AR_INTGATE32);
+	set_segmdesc(idt + 0x2c, (int)asm_inthandler2c, 2 << 3, AR_INTGATE32);
 	return ;
 }
 
@@ -37,7 +41,7 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR* sd, unsigned int limit, int base, i
 {
 	if(limit > 0xffff)
 	{
-		ar |= 0x8000;
+		ar |= 0x8000;			// G_Bit 设置为1
 		limit /= 0x1000;
 	}
 	sd -> limit_low = limit & 0xffff;

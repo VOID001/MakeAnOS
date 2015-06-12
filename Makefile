@@ -1,5 +1,5 @@
 #定义变量
-OBJS_BOOTPACK = bootpack.obj graphic.obj dsctbl.obj naskfunc.obj hankaku.obj
+OBJS_BOOTPACK = bootpack.obj graphic.obj dsctbl.obj naskfunc.obj hankaku.obj int.obj
 
 TOOLPATH = ../tools/
 INCPATH = ../tools/voidOS/
