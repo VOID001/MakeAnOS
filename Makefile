@@ -74,6 +74,9 @@ asm:
 img:
 	$(MAKE) voidOS.img
 
+install:
+	sudo dd if=voidOS.img of=/dev/sdb bs=512K
+
 run:
 	echo "Please run the disk in Virtualbox"
 
