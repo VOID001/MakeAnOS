@@ -31,9 +31,9 @@ void init_gdtidt(void)
 	load_idtr(LIMIT_IDT, ADR_IDT);
 	
 	/* 将中断函数注册到 IDT 内 */
-	set_segmdesc(idt + 0x21, (int)asm_inthandler21, 2 << 3, AR_INTGATE32);	//刚开始因为把 idt 写成了gdt 一处理终端就报错
-	set_segmdesc(idt + 0x27, (int)asm_inthandler27, 2 << 3, AR_INTGATE32);
-	set_segmdesc(idt + 0x2c, (int)asm_inthandler2c, 2 << 3, AR_INTGATE32);
+	set_gatedesc(idt + 0x21, (unsigned int)asm_inthandler21, 2 << 3, AR_INTGATE32);	//刚开始因为把 idt 写成了gdt 一处理终端就报错
+	set_gatedesc(idt + 0x27, (unsigned int)asm_inthandler27, 2 << 3, AR_INTGATE32);
+	set_gatedesc(idt + 0x2c, (unsigned int)asm_inthandler2c, 2 << 3, AR_INTGATE32);
 	return ;
 }
 

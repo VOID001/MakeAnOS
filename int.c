@@ -23,17 +23,20 @@ void init_pic(void)
 	return ;
 }
 
+#define PORT_KEYBOARD 0x60		//键盘的端口号为0x60
+
 void inthandler21(int* esp)		//键盘中断
 {
+	static int pos = 0;
 	struct BOOTINFO* binfo = (struct BOOTINFO*) ADR_BOOTINFO;
-	boxfill8(binfo -> vram, binfo -> scrnx, COL8_000000, 0, 0, 32 * 8 - 1, 15);
-	boxfill8(binfo -> vram, binfo -> scrnx, COL8_000000, 0, 0, binfo -> scrnx, binfo -> scrny );
-	putfonts8_asc(binfo -> vram, binfo -> scrnx, 0, 0, COL8_FFFFFF, "INT 21 (IRQ-1): PS/2 keyboard\nKeyboard is Pressed");
+	unsigned char data, s[4];
+	io_out8(PIC0_OCW2, 0x61);	//通知PIC IRQ-1处理完毕
+	data = io_in8(PORT_KEYBOARD);
+	sprintf(s, "%02X", data);
 
-	for(;;)
-	{
-		io_hlt();
-	}
+	putfonts8_asc(binfo -> vram, binfo -> scrnx, pos, 40, COL8_FFFFFF, s);
+	pos += 16;
+	return ;
 }
 
 void inthandler2c(int* esp)		//鼠标中断
