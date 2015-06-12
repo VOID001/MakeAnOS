@@ -1,4 +1,6 @@
 #定义变量
+OBJS_BOOTPACK = bootpack.obj graphic.obj dsctbl.obj naskfunc.obj hankaku.obj
+
 TOOLPATH = ../tools/
 INCPATH = ../tools/voidOS/
 MAKE = make -r
@@ -22,6 +24,18 @@ default:
 
 #文件生成规则
 
+#通用规则
+
+
+%.gas: %.c Makefile
+	$(CC1) -o $*.gas $*.c
+
+%.nas: %.gas Makefile
+	$(GAS2NASK) $*.gas $*.nas
+
+%.obj: %.nas Makefile
+	$(NASK) $*.nas $*.obj $*.lst
+
 ipl.bin: ipl.nas Makefile
 	$(NASK) ipl.nas ipl.bin ipl.lst
 
@@ -43,9 +57,9 @@ bootpack.obj: bootpack.nas Makefile
 naskfunc.obj: naskfunc.nas Makefile
 	$(NASK) naskfunc.nas naskfunc.obj naskfunc.lst
 
-bootpack.bim:bootpack.obj naskfunc.obj hankaku.obj Makefile
+bootpack.bim: $(OBJS_BOOTPACK) Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
-		bootpack.obj naskfunc.obj hankaku.obj
+		$(OBJS_BOOTPACK)
 
 hankaku.bin: hankaku.txt Makefile
 	$(MAKEFONT) hankaku.txt hankaku.bin
@@ -66,6 +80,8 @@ voidOS.img: ipl.bin voidOS.sys Makefile
 
 voidOS.sys: asmhead.bin bootpack.hrb Makefile
 	cat asmhead.bin bootpack.hrb > voidOS.sys
+
+
 
 #指令
 asm:
@@ -92,6 +108,7 @@ clean:
 	-$(DEL) bootpack.hrb
 	-$(DEL) voidOS.sys
 	-$(DEL) voidOS.img
+	-$(DEL) graphic.nas dsctbl.nas
 
 src_only:
 	$(MAKE) clean
