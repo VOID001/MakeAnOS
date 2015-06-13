@@ -108,10 +108,11 @@ skip:
 waitkbdout:
 		IN		AL,0x64
 		AND		AL,0x02
+		IN		AL,0x60		;空读,清除垃圾数据
 		JNZ		waitkbdout
 		RET
 
-memcpy:
+memcpy:						;内存复制功能
 		MOV		EAX,[ESI]
 		ADD		ESI,4
 		MOV		[EDI],EAX
