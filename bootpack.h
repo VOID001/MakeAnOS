@@ -1,6 +1,7 @@
 #ifndef BOOTPACK_H
 #define BOOTPACK_H
 
+#include <stdio.h>
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
@@ -101,7 +102,6 @@ void inthandler21(int* esp);
 void inthandler27(int* esp);
 void inthandler2c(int* esp);
 
-#include <stdio.h>
 
 /* 定义颜色 */
 

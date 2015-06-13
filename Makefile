@@ -88,6 +88,7 @@ asm:
 	$(MAKE) ipl.bin
 
 img:
+	make clean
 	$(MAKE) voidOS.img
 
 install:
