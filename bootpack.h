@@ -98,9 +98,7 @@ struct KEYBUF {		//用于存储当前接受到的字符
 };
 
 void init_pic(void);
-void inthandler21(int* esp);
 void inthandler27(int* esp);
-void inthandler2c(int* esp);
 
 
 /* 定义颜色 */
@@ -136,4 +134,46 @@ void fifo8_init(struct FIFO8* fifo, int size, unsigned char* buf);
 int fifo8_push(struct FIFO8* fifo, unsigned char data);
 int fifo8_pop(struct FIFO8* fifo);
 int fifo8_status(struct FIFO8* fifo);
+
+/*
+ * Mouse Prototype
+ * mouse.c
+ *
+ */
+
+
+
+#define KEYCMD_WRITE_MODE 0x60
+#define KEYCMD_SENDTO_MOUSE 0xd4
+#define MOUSECMD_ENABLE 0xf4
+
+
+
+struct MOUSE_DEC{			//用来将鼠标传输来的数据解析出来
+	unsigned char buf[3];
+	unsigned char phase;
+	int x, y, btn;
+};
+
+
+void enable_mouse(struct MOUSE_DEC* mdec);
+int mouse_decode(struct MOUSE_DEC* mdec, int dat);
+void inthandler2c(int* esp); 
+
+/*
+ * Keyboard Prototype
+ * keyboard.c
+ *
+ */
+
+#define PORT_KEYDAT 0x0060
+#define PORT_KEYSTA 0x0064
+#define PORT_KEYCMD 0x0064
+#define KEYSTA_SEND_NOTREADY 0x02
+#define KBC_MODE 0x47
+
+void wait_KBC_sendready(void);
+void init_keyboard(void);
+void inthandler21(int* esp);
+
 #endif
