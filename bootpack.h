@@ -4,6 +4,7 @@
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+void io_stihlt(void);
 void io_out8(int port, int data); 
 int io_in8(int port);
 int io_load_eflags(void);
@@ -38,7 +39,7 @@ struct GATE_DESCRIPTOR {			//存放IDT的八字节内容
  * GDT IDT Prototype 
  * dsctbl.c
  * 
- * */
+ */
 #define ADR_IDT			0x0026f800
 #define LIMIT_IDT		0x000007ff
 #define ADR_GDT			0x00270000
@@ -58,7 +59,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR* gd, unsigned int offset, int selector,
  * Display Prototype 
  * graphic.c
  *
- * */
+ */
 
 void init_palette(void);
 void set_palette(int start, int end, unsigned char* rgb);
@@ -73,7 +74,7 @@ void putblock8_8(char* vram, int vxsize, int pxsize, int pysize, int px0, int py
  * PIC Prototype 
  * int.c
  *
- * */
+ */
 
 
 /* 定义PIC的端口地址 */
@@ -91,6 +92,9 @@ void putblock8_8(char* vram, int vxsize, int pxsize, int pysize, int px0, int py
 #define PIC1_ICW3		0x00a1
 #define PIC1_ICW4		0x00a1
 
+struct KEYBUF {		//用于存储当前接受到的字符
+	unsigned char data, flag;
+};
 
 void init_pic(void);
 void inthandler21(int* esp);
@@ -118,4 +122,18 @@ void inthandler2c(int* esp);
 #define COL8_008484 14
 #define COL8_848484 15
 
+/*
+ * FIFO Prototype
+ * fifo.c
+ *
+ */
+struct FIFO8{
+	unsigned char* buf;			//缓冲区的地址
+	int front,end,size,free,flags;	//队列的参数
+};
+
+void fifo8_init(struct FIFO8* fifo, int size, unsigned char* buf);
+int fifo8_push(struct FIFO8* fifo, unsigned char data);
+int fifo8_pop(struct FIFO8* fifo);
+int fifo8_status(struct FIFO8* fifo);
 #endif

@@ -25,19 +25,18 @@ void init_pic(void)
 
 #define PORT_KEYBOARD 0x60		//键盘的端口号为0x60
 
+struct FIFO8 keyfifo;
+
 void inthandler21(int* esp)		//键盘中断
 {
-	static int pos = 0;
 	struct BOOTINFO* binfo = (struct BOOTINFO*) ADR_BOOTINFO;
 	unsigned char data, s[4];
 	io_out8(PIC0_OCW2, 0x61);	//通知PIC IRQ-1处理完毕
 	data = io_in8(PORT_KEYBOARD);
-	sprintf(s, "%02X", data);
-
-	putfonts8_asc(binfo -> vram, binfo -> scrnx, pos, 40, COL8_FFFFFF, s);
-	pos += 16;
+	fifo8_push(&keyfifo, data);
 	return ;
 }
+
 
 void inthandler2c(int* esp)		//鼠标中断
 {

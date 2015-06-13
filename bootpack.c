@@ -8,6 +8,8 @@
 
 #include "bootpack.h"
 
+extern struct FIFO8 keyfifo;
+
 void HariMain(void)
 {
 	char* vram;		// BYTE PTR
@@ -15,6 +17,9 @@ void HariMain(void)
 	char* mouse_cursor;
 	struct BOOTINFO* binfo;		//Store the bootup information in it
 	int mousex, mousey;
+	unsigned char i;
+	char keybuf[32];			//键盘缓冲区
+	int pos = 0;
 	/* 对PIC GDT IDT 进行初始化 如果不进行设置的话,不能使用中断 */
 	init_gdtidt();		//初始化GDT IDT
 	init_pic();			//初始化PIC
@@ -34,10 +39,23 @@ void HariMain(void)
 
 	io_out8(PIC0_IMR, 0xf9);		//设置PIC 的IMR 使之接受 来自键盘的中断 IRQ1 ,默认的2号端口为开启状态使PIC0与PIC1相连
 	io_out8(PIC1_IMR, 0xef);		//设置PIC 的IMR 使之接受 来自鼠标的中断 IRQ12
-	
+	fifo8_init(&keyfifo, 32, keybuf);
 	for(;;)
 	{
-		io_hlt();
+		io_cli();
+		if( fifo8_status(&keyfifo) == 0)
+		{
+//			putfonts8_asc(binfo -> vram, binfo -> scrnx, pos, 40, COL8_FFFFFF, str);
+			io_stihlt();
+		}
+		else
+		{
+			i = fifo8_pop(&keyfifo);
+			io_sti();
+			sprintf(str, "%02X", i);
+			putfonts8_asc(binfo -> vram, binfo -> scrnx, pos, 40, COL8_FFFFFF, str);
+			pos += 26;
+		}
 	}
 }
 
