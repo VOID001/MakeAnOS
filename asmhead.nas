@@ -27,37 +27,38 @@ VRAM	EQU		0x0ff8
 		INT		0x16
 		MOV		[LEDS],AL
 		
-
+; PIC 关闭一切中断
+; 根据AT兼容机的规格,如果要初始化PIC,必须在CLI之前进行,否则可能会挂起 随后进行PIC的初始化
 
 
 
 
 		MOV		AL,0xff
 		OUT		0x21,AL
-		NOP
+		NOP					;连续执行OUT命令,某些机种无法正常运行
 		OUT		0xa1,AL
 
-		CLI
+		CLI					;禁止CPU级别的中断 
 
 		
-
+;为了让CPU可以用1MB以上的内存空间,设定A20GATE
 		CALL	waitkbdout
 		MOV		AL,0xd1
 		OUT		0x64,AL
 		CALL	waitkbdout
-		MOV		AL,0xdf
+		MOV		AL,0xdf			;enable A20
 		OUT		0x60,AL
 		CALL	waitkbdout
 
-
+;切换到保护模式
 
 [INSTRSET "i486p"]
 
-		LGDT	[GDTR0]
+		LGDT	[GDTR0]		;设定临时GDT
 		
 		MOV		EAX,CR0
-		AND		EAX,0x7fffffff
-		OR		EAX,0x00000001
+		AND		EAX,0x7fffffff;设BIT31 为0(为了禁止频? 翻译有误吧)
+		OR		EAX,0x00000001;BIT0 设为1 ,切换到保护模式
 		MOV		CR0,EAX
 		JMP		pipelineflush
 pipelineflush:

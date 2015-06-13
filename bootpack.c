@@ -20,30 +20,28 @@
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
 
-struct MOUSE_DEC{
+struct MOUSE_DEC{			//用来将鼠标传输来的数据解析出来
 	unsigned char buf[3];
 	unsigned char phase;
+	int x, y, btn;
 };
 
-struct MOUSE_DEC mdec;
 
 void wait_KBC_sendready(void);
 void enable_mouse(struct MOUSE_DEC* mdec);
 void init_keyboard(void);
-
+int mouse_decode(struct MOUSE_DEC* mdec, int dat);
+ 
 void HariMain(void)
 {
-	char* vram;		// BYTE PTR
 	unsigned char* str;
-	char* mouse_cursor;
+	char mouse_cursor[256];
 	struct BOOTINFO* binfo;		//Store the bootup information in it
 	int mousex, mousey;
-	unsigned char i;
-	unsigned char mouse_phase,mouse_dbuf[3];
+	struct MOUSE_DEC mdec;
+	int i;
 	char keybuf[32];			//键盘缓冲区
 	char mousebuf[128];			//鼠标缓冲区
-	int posx = 0;
-	int posy = 0;
 	/* 对PIC GDT IDT 进行初始化 如果不进行设置的话,不能使用中断 */
 	init_gdtidt();		//初始化GDT IDT
 	init_pic();			//初始化PIC
@@ -54,8 +52,8 @@ void HariMain(void)
 	init_palette();	/* setup the palette */
 	binfo = (struct BOOTINFO*) 0xff0;
 	//sprintf(str, "binfo -> vram = %08X\n",binfo -> vram);
-	mousex = binfo -> scrnx / 2;
-	mousey = binfo -> scrny / 2;
+	mousex = ( binfo -> scrnx - 16 ) / 2;
+	mousey = ( binfo -> scrny - 16) / 2;
 	
 	init_screen(binfo -> vram, binfo -> scrnx, binfo -> scrny);
 	init_mouse_cursor(mouse_cursor, COL8_008484);
@@ -90,13 +88,132 @@ void HariMain(void)
 			io_sti();
 			if( mouse_decode(&mdec, i) == 1)
 			{
-				sprintf(str, "%02X %02X %02X", mdec.buf[0], mdec.buf[1], mdec.buf[2]);
-				boxfill8(binfo -> vram, binfo -> scrnx, COL8_008484, 32, 16, 32 + 8 * 8 -1, 31);
+				sprintf(str, "[lcr %4d %4d]", mdec.x, mdec.y);
+				if( (mdec.btn & 0x01) !=0 )
+				{
+					str[1] = 'L';
+				}
+				if( (mdec.btn & 0x02) !=0 )
+				{
+					str[3] = 'R';
+				}
+				if( (mdec.btn & 0x04) !=0 )
+				{
+					str[2] = 'C';
+				}
+				boxfill8(binfo -> vram, binfo -> scrnx, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
 				putfonts8_asc(binfo -> vram, binfo -> scrnx, 32, 16, COL8_FFFFFF, str);
+				/* 以上用来显示鼠标信息 */
+				boxfill8(binfo -> vram, binfo -> scrnx, COL8_008484, mousex, mousey, mousex + 15, mousey + 15);	//清除原来鼠标指针
+				mousex += mdec.x;
+				mousey += mdec.y;
+				if( mousex < 0 )
+				{
+					mousex = 0;
+				}
+				if (mousey < 0 )
+				{
+					mousey = 0;
+				}
+				if (mousex > binfo -> scrnx - 16)
+				{
+					mousex = binfo -> scrnx - 16;
+				}
+				if (mousey > binfo -> scrny - 16)
+				{
+					mousey = binfo -> scrny - 16;
+				}
+				sprintf(str, "(%3d, %3d)", mousex, mousey);
+				boxfill8(binfo -> vram, binfo -> scrnx, COL8_008484, 0, 0, 79, 15);
+				putfonts8_asc(binfo -> vram, binfo -> scrnx, 0, 0, COL8_FFFFFF, str);
+				putblock8_8(binfo -> vram, binfo -> scrnx, 16, 16, mousex, mousey, mouse_cursor, 16);
 			}
 		}
 	}
 }
+
+
+//void HariMain(void)
+//{
+//	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
+//	char s[40], mcursor[256], keybuf[32], mousebuf[128];
+//	int mx, my, i;
+//	struct MOUSE_DEC mdec;
+//
+//	init_gdtidt();
+//	init_pic();
+//	io_sti(); /* IDT/PICÌú»ªIíÁœÌÅCPUÌèÝÖ~ðð */
+//	fifo8_init(&keyfifo, 32, keybuf);
+//	fifo8_init(&mousefifo, 128, mousebuf);
+//	io_out8(PIC0_IMR, 0xf9); /* PIC1ÆL[{[hðÂ(11111001) */
+//	io_out8(PIC1_IMR, 0xef); /* }EXðÂ(11101111) */
+//
+//	init_keyboard();
+//
+//	init_palette();
+//	init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
+//	mx = (binfo->scrnx - 16) / 2; /* æÊÉÈéæ€ÉÀWvZ */
+//	my = (binfo->scrny - 28 - 16) / 2;
+//	init_mouse_cursor(mcursor, COL8_008484);
+//	putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
+//	sprintf(s, "(%3d, %3d)", mx, my);
+//	putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
+//
+//	enable_mouse(&mdec);
+//
+//	for (;;) {
+//		io_cli();
+//		if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) {
+//			io_stihlt();
+//		} else {
+//			if (fifo8_status(&keyfifo) != 0) {
+//				i = fifo8_pop(&keyfifo);
+//				io_sti();
+//				sprintf(s, "%02X", i);
+//				boxfill8(binfo->vram, binfo->scrnx, COL8_008484,  0, 16, 15, 31);
+//				putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+//			} else if (fifo8_status(&mousefifo) != 0) {
+//				i = fifo8_pop(&mousefifo);
+//				io_sti();
+//				if (mouse_decode(&mdec, i) != 0) {
+//					/* f[^ª3oCgµÁœÌÅ\Š */
+//					sprintf(s, "[lcr %4d %4d]", mdec.x, mdec.y);
+//					if ((mdec.btn & 0x01) != 0) {
+//						s[1] = 'L';
+//					}
+//					if ((mdec.btn & 0x02) != 0) {
+//						s[3] = 'R';
+//					}
+//					if ((mdec.btn & 0x04) != 0) {
+//						s[2] = 'C';
+//					}
+//					boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
+//					putfonts8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+//					/* }EXJ[\ÌÚ® */
+//					boxfill8(binfo->vram, binfo->scrnx, COL8_008484, mx, my, mx + 15, my + 15); /* }EXÁ· */
+//					mx += mdec.x;
+//					my += mdec.y;
+//					if (mx < 0) {
+//						mx = 0;
+//					}
+//					if (my < 0) {
+//						my = 0;
+//					}
+//					if (mx > binfo->scrnx - 16) {
+//						mx = binfo->scrnx - 16;
+//					}
+//					if (my > binfo->scrny - 16) {
+//						my = binfo->scrny - 16;
+//					}
+//					sprintf(s, "(%3d, %3d)", mx, my);
+//					boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 0, 79, 15); /* ÀWÁ· */
+//					putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s); /* ÀW­ */
+//					putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16); /* }EX`­ */
+//				}
+//			}
+//		}
+//	}
+//}
 
 void wait_KBC_sendready(void)
 {
@@ -129,7 +246,7 @@ void enable_mouse(struct MOUSE_DEC* mdec)
 	return ;
 }
 
-int mouse_decode(struct MOUSE_DEC* mdec, unsigned char dat)
+int mouse_decode(struct MOUSE_DEC* mdec, int dat)
 {
 	if( mdec -> phase == 0)  //鼠标的0xFA准备被接收
 	{
@@ -139,22 +256,41 @@ int mouse_decode(struct MOUSE_DEC* mdec, unsigned char dat)
 		}
 		return 0;
 	}
-	else if( mdec -> phase == 1 )
+	if( mdec -> phase == 1 )		//
 	{
-		mdec -> phase = 2;
-		mdec -> buf[0] = dat;
+		if( (dat & 0xc8) == 0x08)		//判断第一字节是否正确被传输
+		{
+			mdec -> phase = 2;
+			mdec -> buf[0] = dat;
+		}
 		return 0;
 	}
-	else if( mdec -> phase == 2 )
+	if( mdec -> phase == 2 )
 	{
 		mdec -> phase = 3;
 		mdec -> buf[1] = dat;
 		return 0;
 	}
-	else if( mdec -> phase == 3 )
+	if( mdec -> phase == 3 )
 	{
 		mdec -> phase = 1;
 		mdec -> buf[2] = dat;
+		mdec -> btn = mdec -> buf[0] & 0x07;		//低三位存储鼠标的按键信息
+		mdec -> x = mdec -> buf[1];
+		mdec -> y = mdec -> buf[2];
+
+		/* 这一小段不懂 */	
+		if( (mdec -> buf[0] & 0x10) != 0 )
+		{
+			mdec -> x |= 0xffffff00;
+		}
+		if( (mdec -> buf[0] & 0x20) != 0 )
+		{
+			mdec -> y |= 0xffffff00;
+		}
+		/* 这一小段不懂 */
+
+		mdec -> y = - mdec -> y;
 		return 1;
 	}
 	return -1;

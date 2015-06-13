@@ -136,22 +136,22 @@ void init_screen(char* vram, int xsize, int ysize)
 void init_mouse_cursor(char* mouse, char bc)		//将显示鼠标箭头的信息装载到内存中
 {
 	static char cursor[16][16] = {		//绘制鼠标箭头
-		"**************..",
-		"*ooooooooooo*...",
-		"*oooooooooo*....",
-		"*ooooooooo*.....",
-		"*oooooooo*......",
-		"*ooooooo*.......",
-		"*ooooooo*.......",
-		"*oooooooo*......",
-		"*oooo**ooo*.....",
-		"*ooo*..*ooo*....",
-		"*oo*....*ooo*...",
-		"*o*......*ooo*..",
-		"**........*ooo*.",
-		"*..........*ooo*",
-		"............*oo*",
-		".............***",
+		"*...............",
+		"**..............",
+		"*O*.............",
+		"*OO*............",
+		"*OOO*...........",
+		"*OOOO*..........",
+		"*OOOOO*.........",
+		"*OOOOOO*........",
+		"*OOOOOOO*.......",
+		"*OOOO*****......",
+		"*OO*O*..........",
+		"*O*.*O*.........",
+		"**..*O*.........",
+		"*....*O*........",
+		".....*O*........",
+		"......*........."
 	};
 
 	int x, y;
@@ -160,11 +160,11 @@ void init_mouse_cursor(char* mouse, char bc)		//将显示鼠标箭头的信息�
 		for(x = 0; x < 16; x++)
 		{
 			if(cursor[y][x] == '*') mouse[y * 16 + x] = COL8_000000;
-			else if(cursor[y][x] == 'o') mouse[y * 16 + x] = COL8_FFFFFF;
-			else if(cursor[y][x] == '.') mouse[y * 16 + x] = bc; 
+			if(cursor[y][x] == 'O') mouse[y * 16 + x] = COL8_FFFFFF;
+			if(cursor[y][x] == '.') mouse[y * 16 + x] = bc; 
 		}
 	}
-	
+
 	return ;
 }
 
