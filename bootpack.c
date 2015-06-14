@@ -11,6 +11,9 @@
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
  
+unsigned int memtest_sub(unsigned int start, unsigned int end);
+unsigned int memtest(unsigned int start, unsigned int end);
+
 void HariMain(void)
 {
 	unsigned char* str;
@@ -37,6 +40,9 @@ void HariMain(void)
 	init_screen(binfo -> vram, binfo -> scrnx, binfo -> scrny);
 	init_mouse_cursor(mouse_cursor, COL8_008484);
 	putblock8_8(binfo -> vram,binfo -> scrnx, 16, 16, mousex, mousey, mouse_cursor, 16);
+	i = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
+	sprintf(str, "Memory: %dMB", i);
+	putfonts8_asc(binfo -> vram, binfo -> scrnx, 0, 32, COL8_FFFFFF, str);
 	//putfonts8_asc(binfo -> vram, binfo -> scrnx, 8, 8, COL8_FFFFFF, "voidOS By VOID001");
 	//putfonts8_asc(binfo -> vram, binfo -> scrnx, 8, 30, COL8_FFFFFF, str);
 
@@ -112,4 +118,41 @@ void HariMain(void)
 }
 
 
+#define EFLAGS_AC_BIT 0x00040000		
+#define CR0_CACHE_DISABLE 0x600000005
 
+unsigned int memtest(unsigned int start, unsigned int end)
+{
+	char flg486 = 0;
+	unsigned int eflg, cr0, i;
+
+	/* 确认CPU是 386 还是 486 以上的 */
+	io_store_eflags(eflg);
+	eflg = io_load_eflags();
+	if ((eflg & EFLAGS_AC_BIT) != 0)		//如果为386 即使AC设为1 也会自动回到0
+	{
+		flg486 = 1;
+	}
+	eflg &= ~EFLAGS_AC_BIT;
+	io_store_eflags(eflg);
+
+	if(flg486 != 0)
+	{
+		cr0 = load_cr0();
+		cr0 |= CR0_CACHE_DISABLE;			//Memtest 的时候禁止Cache
+		store_cr0(cr0);
+	}
+
+	i = memtest_sub(start, end);
+
+	if(flg486 != 0)
+	{
+		cr0 = load_cr0();
+		cr0 &= ~CR0_CACHE_DISABLE;			//允许Cache
+		store_cr0(cr0);
+	}
+
+	return i;
+}
+
+//unsigned int memtest_sub(unsigned int start, unsigned int end) { unsigned int i, *p, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa; for(i = start; i <= end; i += 0x1000) { p = (unsigned int *) (i + 0xffc); old = *p; *p = pat0; *p ^= 0xffffffff; if(*p != pat1) { not_memory: *p = old; break; } *p ^= 0xffffffff; if(*p != pat0) { goto not_memory; } *p = old; } return i; }
