@@ -176,4 +176,13 @@ void wait_KBC_sendready(void);
 void init_keyboard(void);
 void inthandler21(int* esp);
 
+/*
+ * Memory Prototype
+ * memory.c
+ *
+ */
+unsigned int memtest_sub(unsigned int start, unsigned int end);
+unsigned int memtest(unsigned int start, unsigned int end);
+
+
 #endif
