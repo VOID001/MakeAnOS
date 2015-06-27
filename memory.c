@@ -36,17 +36,6 @@ unsigned int memtest(unsigned int start, unsigned int end)
 	return i;
 }
 
-#define MEMMAN_FREES 4096
-
-struct FREEINFO{
-	unsigned int addr, size;
-};
-
-struct MEMMAN{
-	int frees, maxfrees, lostsize, losts;
-	struct FREEINFO free[MEMMAN_FREES];
-};
-
 void memman_init(struct MEMMAN* man)
 {
 	man->frees = 0;			// 可用信息数目 

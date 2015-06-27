@@ -1,6 +1,6 @@
 #定义变量
 OBJS_BOOTPACK = bootpack.obj graphic.obj dsctbl.obj naskfunc.obj hankaku.obj int.obj fifo.obj mouse.obj \
-				keyboard.obj memory.obj
+				keyboard.obj memory.obj sheet.obj
 
 TOOLPATH = ../tools/
 INCPATH = ../tools/voidOS/
