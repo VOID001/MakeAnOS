@@ -1,6 +1,7 @@
 #include "bootpack.h"
-#define EFLAGS_AC_BIT 0x00040000		
-#define CR0_CACHE_DISABLE 0x600000005
+
+#define EFLAGS_AC_BIT		0x00040000		
+#define CR0_CACHE_DISABLE	0x60000000
 
 unsigned int memtest(unsigned int start, unsigned int end)
 {
@@ -58,7 +59,7 @@ unsigned int memman_total(struct MEMMAN* man)		//返回内存当前可用空间
 unsigned int memman_alloc(struct MEMMAN* man, unsigned int size)
 {
 	unsigned int i, a;
-	for(i = a; i < man->frees; i++)
+	for(i = 0; i < man->frees; i++)
 	{
 		if(man->free[i].size >= size)				//可以分配
 		{
@@ -147,7 +148,7 @@ unsigned int memman_alloc_4k(struct MEMMAN* man, unsigned int size)
 	return a;
 }
 
-unsigned int memman_free_4k(struct MEMMAN* man, unsigned int addr, unsigned int size)
+int memman_free_4k(struct MEMMAN* man, unsigned int addr, unsigned int size)
 {
 	int i;
 	size = (size + 0xfff) & 0xfffff000;

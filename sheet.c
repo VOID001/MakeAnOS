@@ -25,13 +25,14 @@ struct SHTCTL* shtctl_init(struct MEMMAN* memman, unsigned char* vram, int xsize
 	{
 		ctl->sheets0[i].flags = 0;
 	}
+	return ctl;
 }
 
 #define SHEET_USE 1
 
 /* 分配一个SHEET给当前系统 ,成功返回分配好的sheet的地址 */
 
-struct SHTCTL* sheet_alloc(struct SHTCTL* ctl)
+struct SHEET* sheet_alloc(struct SHTCTL* ctl)
 {
 	struct SHEET* sht;
 	int i;
@@ -74,7 +75,7 @@ void sheet_updown(struct SHTCTL* ctl, struct SHEET* sht, int height)
 
 	/* 对 sheets 的高度进行调整 */
 
-	if(height < old)			//从高处将图层移到低处
+	if(old > height)			//从高处将图层移到低处
 	{
 		if(height >= 0)	//该图层夹在当前图层之间了
 		{
@@ -99,7 +100,7 @@ void sheet_updown(struct SHTCTL* ctl, struct SHEET* sht, int height)
 			ctl->top--;				//图层减少1
 		}
 	}
-	else if(old > height)		//从低处将图层移到高处
+	else if(old < height)		//从低处将图层移到高处
 	{
 		if(old >= 0)			//要操作的图层没有被隐藏
 		{
@@ -134,6 +135,7 @@ void sheet_refresh(struct SHTCTL* ctl)
 	for(h = 0; h <= ctl->top; h++)
 	{
 		sht = ctl->sheets[h];
+		buf = sht->buf;
 		for(by = 0; by < sht->bysize; by++)
 		{
 			vy = sht->vy0 + by;
