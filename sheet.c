@@ -6,8 +6,7 @@
     > Created Time: Sat 27 Jun 2015 09:52:50 PM CST
  ************************************************************************/
 
-#include "bootpack.h"
-
+#include "bootpack.h" 
 struct SHTCTL* shtctl_init(struct MEMMAN* memman, unsigned char* vram, int xsize, int ysize)
 {
 	struct SHTCTL* ctl;
@@ -55,6 +54,35 @@ void sheet_setbuf(struct SHEET* sht, unsigned char* buf, int xsize, int ysize, i
 	sht->bxsize = xsize;
 	sht->bysize = ysize;
 	sht->col_inv = col_inv;
+	return ;
+}
+
+void sheet_refreshsub(struct SHTCTL* ctl, int vx0, int vy0, int vx1, int vy1)		//可以指定刷新区域
+{
+	int h, bx, by, vx, vy;
+	unsigned char *buf, c, *vram = ctl->vram;
+	struct SHEET *sht;
+	for(h = 0; h <= ctl->top; h++)
+	{
+		sht = ctl->sheets[h];
+		buf = sht->buf;
+		for(by = 0; by < sht->bysize; by++)
+		{
+			vy = sht->vy0 + by;
+			for(bx = 0;bx < sht->bxsize; bx++)
+			{
+				vx = sht->vx0 + bx;
+				if(vx >= vx0 && vx < vx1 && vy >=vy0 && vy < vy1)
+				{
+					c = buf[by * sht->bxsize + bx];
+					if(c != sht->col_inv)
+					{
+						vram[vy * ctl->xsize + vx] = c;
+					}
+				}
+			}
+		}
+	}
 	return ;
 }
 
@@ -122,44 +150,31 @@ void sheet_updown(struct SHTCTL* ctl, struct SHEET* sht, int height)
 			ctl->top++;
 		}
 	}
-	sheet_refresh(ctl);
+	sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize);
 	return ;
 }
-
 /* 刷新图层 */
-void sheet_refresh(struct SHTCTL* ctl)	
+void sheet_refresh(struct SHTCTL* ctl, struct SHEET* sht, int bx0, int by0, int bx1, int by1)
 {
-	int h,bx,by,vx,vy;
-	unsigned char *buf, c, *vram = ctl->vram;
-	struct SHEET* sht;
-	for(h = 0; h <= ctl->top; h++)
+	if(sht->height >= 0)
 	{
-		sht = ctl->sheets[h];
-		buf = sht->buf;
-		for(by = 0; by < sht->bysize; by++)
-		{
-			vy = sht->vy0 + by;
-			for(bx = 0; bx < sht->bxsize; bx++)
-			{
-				vx = sht->vx0 + bx;
-				c = buf[by * sht->bxsize + bx];
-				if(c != sht->col_inv)			//不是透明色的话就绘制
-				{
-					vram[vy * ctl->xsize + vx] = c;
-				}
-			}
-		}
+		sheet_refreshsub(ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1);
 	}
 	return ;
 }
 
 void sheet_slide(struct SHTCTL* ctl, struct SHEET* sht, int vx0, int vy0)
 {
+	int old_vx0, old_vy0;
+	old_vx0 = sht->vx0;
+	old_vy0 = sht->vy0;
 	sht->vx0 = vx0;
 	sht->vy0 = vy0;
 	if(sht->height >= 0)		//非隐藏图层被移动的时候,要刷新
 	{
-		sheet_refresh(ctl);
+		/* 只更新被移动的部分 */
+		sheet_refreshsub(ctl, old_vx0, old_vy0, old_vx0 + sht->bxsize, old_vy0 + sht->bysize);
+		sheet_refreshsub(ctl, vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize);
 	}
 	return ;
 }

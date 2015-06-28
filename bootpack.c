@@ -63,7 +63,7 @@ void HariMain(void)
 	sprintf(str, "Memory: %d MB, free %d KB", memtotal / (1024 * 1024),memman_total(memman) / 1024);
 
 	putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_FFFFFF, str);
-	sheet_refresh(shtctl);
+	sheet_refresh(shtctl, sht_back, 0, 0, binfo->scrnx, 48);
 
 
 	for(;;)
@@ -80,7 +80,7 @@ void HariMain(void)
 			sprintf(str, "%02X", i);
 			boxfill8(buf_back, binfo -> scrnx, COL8_008484, 0, 16, 15, 31);
 			putfonts8_asc(buf_back, binfo -> scrnx, 0, 16, COL8_FFFFFF, str);
-			sheet_refresh(shtctl);
+			sheet_refresh(shtctl, sht_back, 0, 16, 16, 32);
 		}
 		else if( fifo8_status(&mousefifo) != 0 )
 		{
@@ -103,6 +103,7 @@ void HariMain(void)
 				}
 				boxfill8(buf_back, binfo -> scrnx, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
 				putfonts8_asc(buf_back, binfo -> scrnx, 32, 16, COL8_FFFFFF, str);
+				sheet_refresh(shtctl, sht_back, 32, 16, 32 + 15 * 8, 32);
 				/* 以上用来显示鼠标信息 */
 				/* 使用图层之后就不需要自己写清除原来鼠标指针的操作了,全部使用图层操作即可 */
 				//boxfill8(buf_back, binfo -> scrnx, COL8_008484, mousex, mousey, mousex + 15, mousey + 15);	//清除原来鼠标指针
@@ -128,6 +129,7 @@ void HariMain(void)
 				boxfill8(buf_back, binfo -> scrnx, COL8_008484, 0, 0, 79, 15);
 				putfonts8_asc(buf_back, binfo -> scrnx, 0, 0, COL8_FFFFFF, str);
 				//putblock8_8(buf_back, binfo -> scrnx, 16, 16, mousex, mousey, mouse_cursor, 16);
+				sheet_refresh(shtctl, sht_back, 0, 0, 80, 16);
 				sheet_slide(shtctl, sht_mouse, mousex, mousey);
 			}
 		}
