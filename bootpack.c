@@ -117,13 +117,13 @@ void HariMain(void)
 				{
 					mousey = 0;
 				}
-				if (mousex > binfo -> scrnx - 16)
+				if (mousex > binfo -> scrnx - 1)
 				{
-					mousex = binfo -> scrnx - 16;
+					mousex = binfo -> scrnx - 1;
 				}
-				if (mousey > binfo -> scrny - 16)
+				if (mousey > binfo -> scrny - 1)
 				{
-					mousey = binfo -> scrny - 16;
+					mousey = binfo -> scrny - 1;
 				}
 				sprintf(str, "(%3d, %3d)", mousex, mousey);
 				boxfill8(buf_back, binfo -> scrnx, COL8_008484, 0, 0, 79, 15);
